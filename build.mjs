@@ -12,6 +12,7 @@ fs.mkdirSync(OUT, { recursive: true });
 // liquids read better in litres on a shopping list
 const LIQUID = new Set(["trim_milk", "coconut_milk_lite", "passata"]);
 const fmt = (g, key) => {
+  if (key === "egg") { const n = Math.ceil(g / 50); return n + (n === 1 ? " egg" : " eggs"); }
   const unit = LIQUID.has(key) ? ["L", "ml"] : ["kg", "g"];
   return g >= 1000
     ? (g / 1000).toFixed(1).replace(/\.0$/, "") + " " + unit[0]
@@ -45,7 +46,7 @@ const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 
 function page(week) {
   const { buy, staples } = itemsFor(week);
-  const ingredients = buy.map(x => fmt(x.g, x.key) + " " + shopName(x));
+  const ingredients = buy.map(x => x.key === "egg" ? fmt(x.g, x.key) : fmt(x.g, x.key) + " " + shopName(x));
   const ld = {
     "@context": "https://schema.org",
     "@type": "Recipe",
