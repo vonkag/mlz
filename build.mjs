@@ -50,8 +50,8 @@ function page(week) {
     "@context": "https://schema.org",
     "@type": "Recipe",
     name: "Week " + week + " shopping list",
-    author: { "@type": "Person", name: "Von" },
-    description: "Weekly grocery list for a 28 day meal plan, sized for two adults and a toddler.",
+    author: { "@type": "Person", name: "Household" },
+    description: "Weekly grocery list. Quantities cover three people.",
     recipeYield: "1 week",
     recipeCategory: "Grocery list",
     recipeIngredient: ingredients,
@@ -93,7 +93,7 @@ ${JSON.stringify(ld, null, 2)}
 <body>
 <div class="wrap">
   <h1>Week ${week} shopping list</h1>
-  <p class="sub">${buy.length} items, sized for two adults and a toddler. Tap the Bring! button to send the whole list to your app.</p>
+  <p class="sub">${buy.length} items. Tap the button to send the list to Bring!.</p>
 
   <script async src="//platform.getbring.com/widgets/import.js"></script>
   <div data-bring-import data-bring-language="en"></div>
@@ -110,7 +110,7 @@ ${group[cat].map(x => `    <li><b>${fmt(x.g, x.key)}</b> <span>${esc(shopName(x)
 ${staples.map(x => `    <li><b>${fmt(x.g, x.key)}</b> <span>${esc(shopName(x))}</span></li>`).join("\n")}
   </ul>
 
-  <footer>Pantry amounts are what the week uses, not what to buy. Generated from the meal plan; quantities assume V at 1.5x and the toddler at 0.4x of J's portion.</footer>
+  <footer>Pantry amounts are what the week uses, not what to buy. Quantities cover three people and are already scaled.</footer>
 </div>
 </body>
 </html>`;
