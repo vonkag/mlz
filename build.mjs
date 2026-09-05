@@ -3,7 +3,7 @@
 // author, title and ingredients; image and quantities are recommended.
 import fs from "fs";
 import path from "path";
-import { buyCount, shopName as unitName } from "./shop-units.mjs";
+import { buyCount, BUY } from "./shop-units.mjs";
 
 const D = JSON.parse(fs.readFileSync("plan-data-family.json", "utf8"));
 const HH = 2.9;                        // J + V at 1.5 + toddler at 0.4
@@ -41,6 +41,16 @@ function itemsFor(week) {
     .sort((a, b) => order.indexOf(a.cat) - order.indexOf(b.cat) || b.g - a.g);
   const staples = all.filter(x => x.staple).sort((a, b) => b.g - a.g);
   return { buy, staples };
+}
+
+const cap = (t) => String(t).charAt(0).toUpperCase() + String(t).slice(1);
+// the row already names the product, so a self-naming unit shows only a count
+function visAmount(x) {
+  const b = BUY[x.key];
+  if (!b) return fmt(x.g, x.key);
+  const n = Math.max(1, Math.ceil(x.g / b.per - 0.15));
+  if (b.generic || b.spell) return n + " " + (n === 1 ? b.one : b.many);
+  return "× " + n;
 }
 
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -104,12 +114,12 @@ ${JSON.stringify(ld, null, 2)}
 
 ${Object.keys(group).map(cat => `  <h2>${esc(cat)}</h2>
   <ul>
-${group[cat].map(x => `    <li><b>${esc(buyCount(x.key, x.g, "") || fmt(x.g, x.key))}</b> <span>${esc(shopName(x))}</span></li>`).join("\n")}
+${group[cat].map(x => `    <li><b>${esc(visAmount(x))}</b> <span>${esc(cap(shopName(x)))}</span></li>`).join("\n")}
   </ul>`).join("\n\n")}
 
   <h2>Pantry, check before you go</h2>
   <ul class="staples">
-${staples.map(x => `    <li><b>${esc(buyCount(x.key, x.g, "") || fmt(x.g, x.key))}</b> <span>${esc(shopName(x))}</span></li>`).join("\n")}
+${staples.map(x => `    <li><b>${esc(visAmount(x))}</b> <span>${esc(cap(shopName(x)))}</span></li>`).join("\n")}
   </ul>
 
   <footer>Pantry amounts are what the week uses, not what to buy. Quantities cover three people and are already scaled.</footer>
