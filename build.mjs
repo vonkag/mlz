@@ -20,6 +20,21 @@ const fmt = (g, key) => {
     : (g >= 100 ? Math.round(g / 10) * 10 : Math.round(g / 5) * 5) + " " + unit[1];
 };
 
+// The plan's own weight, always as a weight. `fmt` turns eggs into a count, which is
+// right for the headline amount but useless as a cross-check against the recipes.
+const weightOf = (g, key) => {
+  const unit = LIQUID.has(key) ? ["L", "ml"] : ["kg", "g"];
+  return g >= 1000
+    ? (g / 1000).toFixed(1).replace(/\.0$/, "") + " " + unit[0]
+    : (g >= 100 ? Math.round(g / 10) * 10 : Math.round(g / 5) * 5) + " " + unit[1];
+};
+
+// Shown beside anything counted in pieces, punnets or tins. A buying unit is always an
+// estimate ("3 punnets" assumes 250 g punnets), so the gram weight the portions were
+// actually solved from has to stay visible or the list cannot be checked. Items with no
+// buying unit already lead with their weight, so they get nothing here.
+const planWeight = (x) => (BUY[x.key] ? weightOf(x.g, x.key) : null);
+
 // cooking qualifiers are useless in a trolley
 const SHOP_NAME = {
   egg: "Eggs", egg_white: "Egg whites", greek_yog: "Greek yoghurt, 0%",
@@ -57,7 +72,14 @@ const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 
 function page(week) {
   const { buy, staples } = itemsFor(week);
-  const ingredients = buy.map(x => buyCount(x.key, x.g, shopName(x)) || (fmt(x.g, x.key) + " " + shopName(x)));
+  const ingredients = buy.map(x => {
+    const counted = buyCount(x.key, x.g, shopName(x));
+    if (!counted) return fmt(x.g, x.key) + " " + shopName(x);
+    // Bring reads the leading quantity and keeps the rest as the item name, so a
+    // trailing "(700 g)" rides into the app rather than breaking the parse.
+    const w = planWeight(x);
+    return w ? counted + " (" + w + ")" : counted;
+  });
   const ld = {
     "@context": "https://schema.org",
     "@type": "Recipe",
@@ -94,6 +116,8 @@ ${JSON.stringify(ld, null, 2)}
   ul { list-style:none; margin:0; padding:0; }
   li { display:flex; gap:10px; padding:6px 0; border-bottom:1px solid #e4ecda; }
   li b { font-weight:600; font-variant-numeric: tabular-nums; min-width: 76px; }
+  li span { flex:1; }
+  li i { font-style:normal; color:#7c8a80; font-size:13px; font-variant-numeric: tabular-nums; white-space:nowrap; }
   nav { margin: 22px 0 0; display:flex; gap:8px; flex-wrap:wrap; }
   nav a { text-decoration:none; border:1px solid #d2dec4; background:#fff; color:#5c6d61;
           border-radius:999px; padding:7px 15px; font-size:13.5px; }
@@ -114,12 +138,12 @@ ${JSON.stringify(ld, null, 2)}
 
 ${Object.keys(group).map(cat => `  <h2>${esc(cat)}</h2>
   <ul>
-${group[cat].map(x => `    <li><b>${esc(visAmount(x))}</b> <span>${esc(cap(shopName(x)))}</span></li>`).join("\n")}
+${group[cat].map(x => `    <li><b>${esc(visAmount(x))}</b> <span>${esc(cap(shopName(x)))}</span>${planWeight(x) ? `<i>${esc(planWeight(x))}</i>` : ""}</li>`).join("\n")}
   </ul>`).join("\n\n")}
 
   <h2>Pantry, check before you go</h2>
   <ul class="staples">
-${staples.map(x => `    <li><b>${esc(visAmount(x))}</b> <span>${esc(cap(shopName(x)))}</span></li>`).join("\n")}
+${staples.map(x => `    <li><b>${esc(visAmount(x))}</b> <span>${esc(cap(shopName(x)))}</span>${planWeight(x) ? `<i>${esc(planWeight(x))}</i>` : ""}</li>`).join("\n")}
   </ul>
 
   <footer>Pantry amounts are what the week uses, not what to buy. Quantities cover three people and are already scaled.</footer>
