@@ -3,6 +3,7 @@
 // author, title and ingredients; image and quantities are recommended.
 import fs from "fs";
 import path from "path";
+import { buyCount, shopName as unitName } from "./shop-units.mjs";
 
 const D = JSON.parse(fs.readFileSync("plan-data-family.json", "utf8"));
 const HH = 2.9;                        // J + V at 1.5 + toddler at 0.4
@@ -46,7 +47,7 @@ const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 
 function page(week) {
   const { buy, staples } = itemsFor(week);
-  const ingredients = buy.map(x => x.key === "egg" ? fmt(x.g, x.key) : fmt(x.g, x.key) + " " + shopName(x));
+  const ingredients = buy.map(x => buyCount(x.key, x.g, shopName(x)) || (fmt(x.g, x.key) + " " + shopName(x)));
   const ld = {
     "@context": "https://schema.org",
     "@type": "Recipe",
@@ -103,12 +104,12 @@ ${JSON.stringify(ld, null, 2)}
 
 ${Object.keys(group).map(cat => `  <h2>${esc(cat)}</h2>
   <ul>
-${group[cat].map(x => `    <li><b>${fmt(x.g, x.key)}</b> <span>${esc(shopName(x))}</span></li>`).join("\n")}
+${group[cat].map(x => `    <li><b>${esc(buyCount(x.key, x.g, "") || fmt(x.g, x.key))}</b> <span>${esc(shopName(x))}</span></li>`).join("\n")}
   </ul>`).join("\n\n")}
 
   <h2>Pantry, check before you go</h2>
   <ul class="staples">
-${staples.map(x => `    <li><b>${fmt(x.g, x.key)}</b> <span>${esc(shopName(x))}</span></li>`).join("\n")}
+${staples.map(x => `    <li><b>${esc(buyCount(x.key, x.g, "") || fmt(x.g, x.key))}</b> <span>${esc(shopName(x))}</span></li>`).join("\n")}
   </ul>
 
   <footer>Pantry amounts are what the week uses, not what to buy. Quantities cover three people and are already scaled.</footer>
