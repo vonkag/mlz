@@ -6,7 +6,7 @@ import path from "path";
 import { buyCount, BUY } from "./shop-units.mjs";
 
 const D = JSON.parse(fs.readFileSync("plan-data-family.json", "utf8"));
-const HH = 2.9;                        // J + V at 1.5 + toddler at 0.4
+const HH = 2.4;                        // J + V at 1.0 + toddler at 0.4
 const OUT = "bring-pages";
 fs.mkdirSync(OUT, { recursive: true });
 
